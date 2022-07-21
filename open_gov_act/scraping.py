@@ -16,81 +16,35 @@ htmlPage = requests.get(url).text
 soup = BeautifulSoup(htmlPage,'html.parser')
 
 # find all the div with class hoofdstuk
-lawDivs = soup.find_all("div",class_="hoofdstuk") 
+# pDivs = soup.find_all("p",class_="lid labeled")
 
-ulCount = -1
-liCount = -1
+articleDiv = soup.find_all("div",class_="artikel")
 
-ulDiv = []
-liDiv = []
-nestedUlDiv = []
-
-def recursiveChildFinder(ulDiv):
-    print("---------------------recursion---------------------------")
+for article in articleDiv:
+    mainContainer = article.findParent()
+    idName = mainContainer.get("id")
+    pDivs = article.find_all("p",class_="lid labeled")
     
-    if(ulDiv == 'end'):
-        return
-    
-    liDiv = ulDiv.find_all("li")
-
-    for li in liDiv:
-        pDiv = li.find('p')
-        if(pDiv == None):
-            continue
-        span = pDiv.find("span").text
-        my_dict[mainArticleNumber+span] = pDiv.get_text()
+    for pDiv in pDivs:
+        print(pDiv.prettify())
+        print('--------------------')
+        lid_labeled_tracker = pDiv.find('span').text
+        labeledDiv = pDiv.findParent().find_all('p',class_="labeled")
         
-        nestedUl = li.find_all('ul')
-        if(ulDiv == None):
-            continue
-        else:
-            recursiveChildFinder(next(nestedUl,'end'))
-    # recursiveChildFinder(next(ulDiv,'end'))
-        
-        # for li in liDiv:
-        #     nestedUlDiv = li.find('ul')
-        #     if(nestedUlDiv != None):
-        #         recursiveChildFinder()
-            # pDiv = li.find('p')
-            # span = pDiv.find("span").get_text()
-            # my_dict[mainArticleNumber+span] = pDiv.get_text()
-            # recursiveChildFinder(next(nestedUlDiv,"end"))
-        # return recursiveChildFinder(next(ulDiv,'end'))
-    
-    
-    
-    
-    # for ul in ulDiv:
-    #     liDiv = ul.find_all("li")
-    #     for li in liDiv:
-    #         # spanDiv = articleDiv.find("span", {"class": "lidnr"})
-    #         pDiv = li.find("p")
-    #         if(pDiv == None):
-    #             continue
-    #         else:
-    #             span = pDiv.find("span").get_text()
-    #             print(span)
-    #             print('-------------------------')
-    #             my_dict[mainArticleNumber + span] = pDiv.get_text()
-    #         # print(li.find("span"),{ "class" : "lidnr" })
-    #         # print('----------------------------------')
-    #         recursiveChildFinder(li)
-
-for law in lawDivs:
-    articleDiv = law.find("div", {"class": "artikel"})
-    mainArticleNumber = articleDiv.get("id")
-    articleLawHeaderDiv = articleDiv.div
-    
-    mainPDiv = articleDiv.find("p",{"class": "al"})
-    if(mainPDiv != None):
-        my_dict[mainArticleNumber] = mainPDiv.get_text()
-     
-    ulDiv = iter(articleDiv.find_all("ul"))
-    if(ulDiv == None):
-        continue
-    recursiveChildFinder(next(ulDiv, 'end'))
-    mainArticleNumber = ""
+        subArticleValue = pDiv.find('span').text
+        my_dict[idName+"."+subArticleValue] = pDiv.text
             
+        # for p in pDivs:
+    #     subArticleValue = p.find('span').text
+    #     my_dict[idName+"."+subArticleValue] = p.text
+        
+        for label in labeledDiv:
+            subArticleValue1 = label.find('span').text
+            label1 = str(idName+'.'+subArticleValue+'.'+subArticleValue1).replace(" ","")
+            my_dict[label1] = label.text
+
+
+print(my_dict)    
 
 # write the dictionary to json
 with open("article.json", "w") as fp:
